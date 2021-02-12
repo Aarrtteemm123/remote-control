@@ -24,7 +24,7 @@ class Server:
         print('starting server on ', (self.host,self.port))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
-            s.listen(1)
+            s.listen()
             while self.__is_running:
                 connection, address = s.accept()
                 print('accepted connection from ', address)

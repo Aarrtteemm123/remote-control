@@ -1,5 +1,6 @@
 import cv2, pyautogui, ctypes, numpy, threading
 
+
 class ScreenViewer:
     def __init__(self, name: str, region: tuple = None):
         self.name = name
@@ -8,10 +9,9 @@ class ScreenViewer:
 
     def __run(self):
         cv2.namedWindow(self.name)
-        user32 = ctypes.windll.user32
-        screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-        x,y,w,h = cv2.getWindowImageRect(self.name)
-        cv2.moveWindow(self.name,screensize[0]//2-w//2,screensize[1]//2-h//2)
+        screensize = pyautogui.size()
+        x, y, w, h = cv2.getWindowImageRect(self.name)
+        cv2.moveWindow(self.name, screensize.width // 2 - w // 2, screensize.height // 2 - h // 2)
 
         while self.__is_running and cv2.getWindowProperty(self.name, 1) > 0:
             img = pyautogui.screenshot(region=self.region)
@@ -24,6 +24,7 @@ class ScreenViewer:
         cv2.destroyAllWindows()
 
     def start(self):
+        self.__is_running = True
         threading.Thread(target=self.__run).start()
 
     def close(self):
