@@ -5,6 +5,7 @@ class ScreenViewer:
     def __init__(self, name: str, region: tuple = None):
         self.name = name
         self.region = region
+        self.frame = None
         self.__is_running = True
 
     def __run(self):
@@ -17,6 +18,7 @@ class ScreenViewer:
             img = pyautogui.screenshot(region=self.region)
             frame = numpy.array(img)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.frame = frame
             cv2.imshow(self.name, frame)
             if not cv2.waitKey(1):
                 break
