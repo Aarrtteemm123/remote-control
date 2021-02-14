@@ -13,5 +13,6 @@ while not keyboard.is_pressed('Esc'):
     img = pyautogui.screenshot()
     frame = numpy.array(img)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    print(time.time() - st)
+    bytes_data = pickle.dumps(frame)
+    print(type(bytes_data))
     # execute command and send data to client

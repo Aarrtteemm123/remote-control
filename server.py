@@ -1,3 +1,5 @@
+import pickle
+
 from flask import Flask, request, make_response
 from global_values import Global
 import threading
@@ -10,8 +12,8 @@ def ping():
 
 @app.route('/data', methods=['GET'])
 def get_data():
-    # input commands
-    return 'frame'
+    Global.commands = request.form.get('commands')
+    return pickle.dumps(Global.frame)
 
 @app.route('/')
 def hello():

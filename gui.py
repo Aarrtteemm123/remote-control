@@ -58,10 +58,24 @@ class Gui:
                 Global.role = 'control'
 
             elif event == '-START-':
+                self.__window.hide()
                 if Global.role == 'share':
-                    pass
+                    while not keyboard.is_pressed('Esc'):
+                        img = pyautogui.screenshot()
+                        frame = numpy.array(img)
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        Global.frame = frame
+                        print(Global.commands)
+                        # execute commands
                 elif Global.role == 'control':
-                    pass
+                    while not keyboard.is_pressed('Esc'):
+                        commands = 'commands'
+                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'commands':commands})
+                        frame = pickle.loads(res.content)
+                        cv2.imshow('Window', frame)
+                        if not cv2.waitKey(1):
+                            break
+                self.__window.un_hide()
 
             elif event == '-APPLY-':
                 Global.ip = values['ip']
