@@ -4,21 +4,18 @@ import threading
 
 app = Flask(__name__)
 
-@app.route('/validate', methods=['GET'])
-def validate():
-    if request.form.get('role') != Global.role:
-        return 'Ok'
-    res = app.make_response('Role must be different')
-    res.status_code = 500
-    return res
-
 @app.route('/ping', methods=['GET'])
 def ping():
     return 'Test message'
 
-@app.route('/')
+@app.route('/data', methods=['GET'])
 def get_data():
-    return 'Hello, World!'
+    # input commands
+    return 'frame'
+
+@app.route('/')
+def hello():
+    return 'Hello!'
 
 @app.route('/shutdown', methods=['GET'])
 def shutdown():

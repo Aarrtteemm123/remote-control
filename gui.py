@@ -30,14 +30,12 @@ class Gui:
                     size=(100,15), orientation='horizontal', font=('Helvetica', 12))],
             [sg.Slider(range=(1,screensize.height),tooltip='window record height', default_value=screensize.height, key='-HEIGHT-',
                        size=(100,15),pad=(10,5), orientation='horizontal', font=('Helvetica', 12))],
-            [sg.Radio('I\'m share a screen', "RADIO1",enable_events=True,key='-SHARE-', default=True),
-             sg.Radio('I\'m control a screen', "RADIO1",enable_events=True,key='-CONTROL-')],
-            [sg.Text('Local IP:               ',key='local ip label'), sg.Input(tooltip='IP computer in your local network',default_text='192.168.0.106',key='local ip')],
-            [sg.Text('Remote IP:            ',key='remote ip label'), sg.Input(tooltip='Global IP remote computer',default_text='192.168.0.106',key='remote ip')],
-            [sg.Text('Local port:             '), sg.Input(tooltip='Port of your server',default_text='65432',key='local port')],
-            [sg.Text('Remote port:          '), sg.Input(tooltip='Port of remote server',default_text='65432',key='remote port')],
+            [sg.Radio('I\'m share a screen (Server)', "RADIO1",enable_events=True,key='-SHARE-', default=True),
+             sg.Radio('I\'m control a screen (Client)', "RADIO1",enable_events=True,key='-CONTROL-')],
+            [sg.Text('IP:               ',key='local ip label'), sg.Input(default_text='192.168.0.106',key='ip')],
+            [sg.Text('Port:             '), sg.Input(default_text='65432',key='port')],
             [sg.Button('Start', key='-START-', disabled=True, size=(100, 2))],
-            [sg.Button('Run server', key='-RUN-SERVER-', size=(100, 2))],
+            [sg.Button('Apply', key='-APPLY-', size=(100, 2))],
             [sg.Button('Test connection',key='-TEST-CONNECT-',disabled=True, size=(100, 2))],
             [sg.Button('Exit',key='-EXIT-', size=(100, 2))]
         ]
@@ -50,7 +48,7 @@ class Gui:
             #print(values)
             if event == sg.WIN_CLOSED or event == '-EXIT-': # if user closes window or clicks cancel
                 if Global.is_server_running:
-                    requests.get(f'http://{Global.local_ip}:{Global.local_port}/shutdown')
+                    requests.get(f'http://{Global.ip}:{Global.port}/shutdown')
                 break
 
             elif event == '-SHARE-':
@@ -60,24 +58,22 @@ class Gui:
                 Global.role = 'control'
 
             elif event == '-START-':
-                res = requests.get(f'http://{Global.remote_ip}:{Global.remote_port}/validate',data={'role':'control'})
-                if res.status_code == 200:
-                    if Global.role == 'share':
-                        pass
-                    elif Global.role == 'control':
-                        pass
-                else:
-                    ctypes.windll.user32.MessageBoxA(None, bytes(res.text,'utf-8'), b"Error!", 0x30 | 0x0)
+                if Global.role == 'share':
+                    pass
+                elif Global.role == 'control':
+                    pass
 
-            elif event == '-RUN-SERVER-':
-                Global.local_ip = values['local ip']
-                Global.remote_ip = values['remote ip']
-                Global.local_port = int(values['local port'])
-                Global.remote_port = int(values['remote port'])
+            elif event == '-APPLY-':
+                Global.ip = values['ip']
+                Global.port = int(values['port'])
                 Global.region = (values['-X-'],values['-Y-'],values['-WIDTH-'],values['-HEIGHT-'])
-                run_server(Global.local_ip,Global.local_port)
+                try:
+                    if Global.role == 'share':
+                        run_server(Global.ip,Global.port)
+                except Exception as e:
+                    ctypes.windll.user32.MessageBoxA(None, bytes(str(e),'utf-8'), b"Error", 0x30 | 0x0)
                 self.__window['-TEST-CONNECT-'].update(disabled=False)
-                self.__window['-RUN-SERVER-'].update(disabled=True)
+                self.__window['-APPLY-'].update(disabled=True)
                 self.__window['-SHARE-'].update(disabled=True)
                 self.__window['-CONTROL-'].update(disabled=True)
                 self.__window['-X-'].update(disabled=True)
@@ -88,7 +84,10 @@ class Gui:
 
             elif event == '-TEST-CONNECT-':
                 start = time.time()
-                requests.get(f'http://{Global.remote_ip}:{Global.remote_port}/ping')
+                try:
+                    requests.get(f'http://{Global.ip}:{Global.port}/ping')
+                except Exception as e:
+                    ctypes.windll.user32.MessageBoxA(None, bytes(str(e),'utf-8'), b"Error", 0x30 | 0x0)
                 ping_ms = round((time.time() - start) * 1000, 1)
                 ctypes.windll.user32.MessageBoxA(None, bytes(f"Ping: {ping_ms} ms",'utf-8'), b"Info", 0x40 | 0x0)
 
