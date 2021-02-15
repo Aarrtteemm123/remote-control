@@ -2,6 +2,8 @@ import json
 import pickle
 
 from flask import Flask, request, make_response
+from keyboard import KeyboardEvent
+
 from global_values import Global
 import threading
 
@@ -13,7 +15,10 @@ def ping():
 
 @app.route('/data', methods=['GET'])
 def get_data():
-    Global.commands = json.loads(request.form.get('commands'))
+    data_keyboard_events = request.form.get('keyboard_events')
+    if data_keyboard_events:
+        keyboard_events_json_lst = json.loads(data_keyboard_events)
+        Global.keyboard_events = [KeyboardEvent(**json.loads(event)) for event in keyboard_events_json_lst]
     return pickle.dumps(Global.frame)
 
 @app.route('/')

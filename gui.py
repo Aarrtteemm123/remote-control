@@ -9,9 +9,10 @@ import ctypes
 import win32api
 import win32con
 
+from keyboard_listener import KeyboardListener
 from server import *
 import cv2
-import keyboard as keyboard
+import keyboard
 import numpy
 import pyautogui
 from screen_viewer import ScreenViewer
@@ -66,27 +67,24 @@ class Gui:
                 if Global.role == 'share':
 
                     while not keyboard.is_pressed('Esc'):
-                        mouse_pos = pyautogui.position()
                         img = pyautogui.screenshot(region=Global.region)
                         frame = numpy.array(img)
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         Global.frame = frame
-                        print(Global.commands)
-                        if Global.commands:
-                            commands = Global.commands['mouse']
-                            #pyautogui.moveTo(commands['x'],commands['y'])
-                        # execute commands
+
+                        keyboard.play(Global.keyboard_events)
+
 
                 elif Global.role == 'control':
+                    KeyboardListener().start_listen()
                     cv2.namedWindow('Window')
                     screensize = pyautogui.size()
                     x, y, w, h = cv2.getWindowImageRect('Window')
                     cv2.moveWindow('Window', screensize.width // 2 - w // 2, screensize.height // 2 - h // 2)
 
                     while cv2.getWindowProperty('Window', 1) > 0:
-                        mouse_pos = pyautogui.position()
-                        commands = dict(mouse={'x':mouse_pos.x,'y':mouse_pos.y})
-                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'commands':json.dumps(commands,default=lambda x: x.__dict__())})
+                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'keyboard_events':json.dumps(Global.keyboard_events)})
+                        Global.keyboard_events = []
                         frame = pickle.loads(res.content)
                         cv2.imshow('Window', frame)
                         if not cv2.waitKey(1):

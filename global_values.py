@@ -1,7 +1,8 @@
 class Global:
     is_server_running = False
     frame = None
-    commands = None
+    mouse_events = []
+    keyboard_events = []
     role = 'share'
     ip = ''
     region = ''
