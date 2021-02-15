@@ -5,6 +5,10 @@ import requests
 
 import PySimpleGUI as sg
 import ctypes
+
+import win32api
+import win32con
+
 from server import *
 import cv2
 import keyboard as keyboard
@@ -60,21 +64,34 @@ class Gui:
             elif event == '-START-':
                 self.__window.hide()
                 if Global.role == 'share':
+
                     while not keyboard.is_pressed('Esc'):
-                        img = pyautogui.screenshot()
+                        mouse_pos = pyautogui.position()
+                        img = pyautogui.screenshot(region=Global.region)
                         frame = numpy.array(img)
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         Global.frame = frame
                         print(Global.commands)
+                        if Global.commands:
+                            commands = Global.commands['mouse']
+                            #pyautogui.moveTo(commands['x'],commands['y'])
                         # execute commands
+
                 elif Global.role == 'control':
-                    while not keyboard.is_pressed('Esc'):
-                        commands = 'commands'
-                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'commands':commands})
+                    cv2.namedWindow('Window')
+                    screensize = pyautogui.size()
+                    x, y, w, h = cv2.getWindowImageRect('Window')
+                    cv2.moveWindow('Window', screensize.width // 2 - w // 2, screensize.height // 2 - h // 2)
+
+                    while cv2.getWindowProperty('Window', 1) > 0:
+                        mouse_pos = pyautogui.position()
+                        commands = dict(mouse={'x':mouse_pos.x,'y':mouse_pos.y})
+                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'commands':json.dumps(commands,default=lambda x: x.__dict__())})
                         frame = pickle.loads(res.content)
                         cv2.imshow('Window', frame)
                         if not cv2.waitKey(1):
                             break
+
                 self.__window.un_hide()
 
             elif event == '-APPLY-':

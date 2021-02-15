@@ -7,12 +7,8 @@ import mss
 import numpy
 import pyautogui
 
+from screen_viewer import ScreenViewer
 
-while not keyboard.is_pressed('Esc'):
-    st = time.time()
-    img = pyautogui.screenshot()
-    frame = numpy.array(img)
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    bytes_data = pickle.dumps(frame)
-    print(type(bytes_data))
+sv = ScreenViewer('window',(0,0,500,600))
+sv.start()
     # execute command and send data to client

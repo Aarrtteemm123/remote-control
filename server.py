@@ -1,3 +1,4 @@
+import json
 import pickle
 
 from flask import Flask, request, make_response
@@ -12,7 +13,7 @@ def ping():
 
 @app.route('/data', methods=['GET'])
 def get_data():
-    Global.commands = request.form.get('commands')
+    Global.commands = json.loads(request.form.get('commands'))
     return pickle.dumps(Global.frame)
 
 @app.route('/')
