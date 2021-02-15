@@ -15,7 +15,6 @@ import cv2
 import keyboard
 import numpy
 import pyautogui
-from screen_viewer import ScreenViewer
 
 class Gui:
     def __new__(cls):
@@ -67,13 +66,12 @@ class Gui:
                 if Global.role == 'share':
 
                     while not keyboard.is_pressed('Esc'):
-                        img = pyautogui.screenshot(region=Global.region)
-                        frame = numpy.array(img)
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        mouse_pos = pyautogui.position()
+                        img = pyautogui.screenshot()
+                        img = cv2.circle(numpy.array(img), (mouse_pos.x,mouse_pos.y), 5, (255,0,0), -1)
+                        frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                         Global.frame = frame
-
                         keyboard.play(Global.keyboard_events)
-
 
                 elif Global.role == 'control':
                     KeyboardListener().start_listen()

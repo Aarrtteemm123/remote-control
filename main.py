@@ -1,14 +1,17 @@
-import pickle
-import time
 
 import cv2
-import keyboard
-import mss
 import numpy
 import pyautogui
 
-from screen_viewer import ScreenViewer
+cv2.namedWindow('Window')
+cursor_img = cv2.imread("cursor.png")
 
-sv = ScreenViewer('window',(0,0,500,600))
-sv.start()
-    # execute command and send data to client
+while cv2.getWindowProperty('Window', 1) > 0:
+    mouse_pos = pyautogui.position()
+    img = pyautogui.screenshot()
+    img = numpy.array(img)
+    img[mouse_pos.y:mouse_pos.y + cursor_img.shape[0], mouse_pos.x:mouse_pos.x + cursor_img.shape[1]] = cursor_img
+    frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    cv2.imshow('Window', frame)
+    if not cv2.waitKey(1):
+        break
