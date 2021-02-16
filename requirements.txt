@@ -1,0 +1,8 @@
+requests
+opencv-python
+keyboard
+numpy
+PyAutoGUI
+PySimpleGUI
+Flask
+pynput
