@@ -7,6 +7,14 @@ from keyboard_listener import KeyboardListener
 from mouse_listener import MouseListener
 from server import *
 
+def make_screenshots(filename: str,quality: int):
+    while True:
+        mouse_pos = pyautogui.position()
+        img = pyautogui.screenshot(region=Global.region)
+        img = cv2.circle(numpy.array(img), (mouse_pos.x,mouse_pos.y), 5, (255,0,0), -1)
+        frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(filename, frame, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
+
 class Gui:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -54,15 +62,12 @@ class Gui:
             elif event == '-START-':
                 self.__window.hide()
                 if Global.role == 'share':
+                    threading.Thread(target=make_screenshots,args=('screenshot.jpg',50)).start()
 
                     while not keyboard.is_pressed('Esc'):
-                        mouse_pos = pyautogui.position()
-                        img = pyautogui.screenshot(region=Global.region)
-                        img = cv2.circle(numpy.array(img), (mouse_pos.x,mouse_pos.y), 5, (255,0,0), -1)
-                        frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                        cv2.imwrite('screenshot.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
                         keyboard.play(Global.keyboard_events)
-                        Global.mouse_events = []
+                        Global.keyboard_events.clear()
+                        #Global.mouse_events = []
                         for event in Global.mouse_events:
                             if event['event_name'] == 'click':
                                 pyautogui.click(button=event['button'])
@@ -70,6 +75,7 @@ class Gui:
                                 pyautogui.scroll(event['dy'] * 5)
                             elif event['event_name'] == 'move':
                                 pyautogui.moveTo(event['x'],event['y'])
+                        Global.mouse_events.clear()
 
 
                 elif Global.role == 'control':
