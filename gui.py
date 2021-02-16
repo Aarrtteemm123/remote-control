@@ -1,20 +1,8 @@
-import json
-import pickle
-import time
-import requests
-
+import time,requests,ctypes,cv2,keyboard,numpy,pyautogui
 import PySimpleGUI as sg
-import ctypes
-
-import win32api
-import win32con
-
 from keyboard_listener import KeyboardListener
+from mouse_listener import MouseListener
 from server import *
-import cv2
-import keyboard
-import numpy
-import pyautogui
 
 class Gui:
     def __new__(cls):
@@ -49,7 +37,6 @@ class Gui:
         sg.theme()   # Add a touch of color
         while True:
             event, values = self.__window.read(timeout=10)
-            #print(values)
             if event == sg.WIN_CLOSED or event == '-EXIT-': # if user closes window or clicks cancel
                 if Global.is_server_running:
                     requests.get(f'http://{Global.ip}:{Global.port}/shutdown')
@@ -72,17 +59,27 @@ class Gui:
                         frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                         Global.frame = frame
                         keyboard.play(Global.keyboard_events)
+                        for event in Global.mouse_events:
+                            if event['event_name'] == 'click':
+                                pyautogui.doubleClick(button=event['button'])
+                            elif event['event_name'] == 'scroll':
+                                pyautogui.scroll(event['dy'] * 5)
+                            elif event['event_name'] == 'move':
+                                pyautogui.moveTo(event['x'],event['y'])
+
 
                 elif Global.role == 'control':
                     KeyboardListener().start_listen()
+                    MouseListener().start_listen()
                     cv2.namedWindow('Window')
                     screensize = pyautogui.size()
                     x, y, w, h = cv2.getWindowImageRect('Window')
                     cv2.moveWindow('Window', screensize.width // 2 - w // 2, screensize.height // 2 - h // 2)
 
                     while cv2.getWindowProperty('Window', 1) > 0:
-                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'keyboard_events':json.dumps(Global.keyboard_events)})
-                        Global.keyboard_events = []
+                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'mouse_events':json.dumps(Global.mouse_events),'keyboard_events':json.dumps(Global.keyboard_events)})
+                        Global.keyboard_events.clear()
+                        Global.mouse_events.clear()
                         frame = pickle.loads(res.content)
                         cv2.imshow('Window', frame)
                         if not cv2.waitKey(1):
@@ -119,5 +116,3 @@ class Gui:
                 ctypes.windll.user32.MessageBoxA(None, bytes(f"Ping: {ping_ms} ms",'utf-8'), b"Info", 0x40 | 0x0)
 
         self.__window.close()
-
-Gui().start()
