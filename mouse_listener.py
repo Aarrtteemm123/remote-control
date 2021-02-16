@@ -1,6 +1,4 @@
 import json
-import threading
-import time
 
 from pynput.mouse import Listener
 
@@ -45,15 +43,12 @@ class MouseClick(MouseEvent):
 class MouseListener:
 
     def __on_move(self, x, y):
-        print("Mouse moved to ({0}, {1})".format(x, y))
         Global.mouse_events.append(MouseMove(x,y).to_json())
 
     def __on_click(self, x, y, button, pressed):
-        print('Mouse clicked at ({0}, {1}) with {2},{3}'.format(x, y, button, pressed))
         Global.mouse_events.append(MouseClick(x,y,button,pressed).to_json())
 
     def __on_scroll(self, x, y, dx, dy):
-        print('Mouse scrolled at ({0}, {1})({2}, {3})'.format(x, y, dx, dy))
         Global.mouse_events.append(MouseScroll(x,y,dx,dy).to_json())
 
     def start_listen(self):

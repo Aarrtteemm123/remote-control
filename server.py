@@ -1,4 +1,6 @@
 import json,pickle,threading
+
+import cv2
 from flask import Flask, request, make_response
 from keyboard import KeyboardEvent
 from global_values import Global
@@ -19,7 +21,7 @@ def get_data():
     if data_mouse_events:
         mouse_events_json_lst = json.loads(data_mouse_events)
         Global.mouse_events = [json.loads(event) for event in mouse_events_json_lst]
-    return pickle.dumps(Global.frame)
+    return open('screenshot.jpg','rb').read()
 
 @app.route('/')
 def hello():

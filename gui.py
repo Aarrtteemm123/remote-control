@@ -1,5 +1,8 @@
+import io
 import time,requests,ctypes,cv2,keyboard,numpy,pyautogui
 import PySimpleGUI as sg
+from PIL import Image, ImageFile
+
 from keyboard_listener import KeyboardListener
 from mouse_listener import MouseListener
 from server import *
@@ -54,14 +57,15 @@ class Gui:
 
                     while not keyboard.is_pressed('Esc'):
                         mouse_pos = pyautogui.position()
-                        img = pyautogui.screenshot()
+                        img = pyautogui.screenshot(region=Global.region)
                         img = cv2.circle(numpy.array(img), (mouse_pos.x,mouse_pos.y), 5, (255,0,0), -1)
                         frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                        Global.frame = frame
+                        cv2.imwrite('screenshot.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
                         keyboard.play(Global.keyboard_events)
+                        Global.mouse_events = []
                         for event in Global.mouse_events:
                             if event['event_name'] == 'click':
-                                pyautogui.doubleClick(button=event['button'])
+                                pyautogui.click(button=event['button'])
                             elif event['event_name'] == 'scroll':
                                 pyautogui.scroll(event['dy'] * 5)
                             elif event['event_name'] == 'move':
@@ -75,15 +79,23 @@ class Gui:
                     screensize = pyautogui.size()
                     x, y, w, h = cv2.getWindowImageRect('Window')
                     cv2.moveWindow('Window', screensize.width // 2 - w // 2, screensize.height // 2 - h // 2)
+                    ImageFile.LOAD_TRUNCATED_IMAGES = True
 
                     while cv2.getWindowProperty('Window', 1) > 0:
-                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'mouse_events':json.dumps(Global.mouse_events),'keyboard_events':json.dumps(Global.keyboard_events)})
+                        keyboard_events, mouse_events = Global.keyboard_events, Global.mouse_events
                         Global.keyboard_events.clear()
                         Global.mouse_events.clear()
-                        frame = pickle.loads(res.content)
-                        cv2.imshow('Window', frame)
-                        if not cv2.waitKey(1):
-                            break
+                        res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'mouse_events':json.dumps(mouse_events),'keyboard_events':json.dumps(keyboard_events)})
+
+                        if res.content:
+                            stream = io.BytesIO(res.content)
+                            frame = Image.open(stream).convert("RGBA")
+                            stream.close()
+                            frame = numpy.array(frame)
+                            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            cv2.imshow('Window', frame)
+                            if not cv2.waitKey(1):
+                                break
 
                 self.__window.un_hide()
 
