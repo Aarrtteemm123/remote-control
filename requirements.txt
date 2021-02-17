@@ -6,3 +6,6 @@ PyAutoGUI
 PySimpleGUI
 Flask
 pynput
+pypiwin32
+pywin32
+Pillow

@@ -1,17 +1,17 @@
-import io
-import time,requests,ctypes,cv2,keyboard,numpy,pyautogui
+import time,requests,ctypes,keyboard,numpy,pyautogui,cv2,io
 import PySimpleGUI as sg
+import win32api
+import win32con
 from PIL import Image, ImageFile
-
 from keyboard_listener import KeyboardListener
 from mouse_listener import MouseListener
 from server import *
 
-def make_screenshots(filename: str,quality: int):
+def make_screenshots(filename: str, quality: int):
     while True:
-        mouse_pos = pyautogui.position()
+        mouse_x, mouse_y = win32api.GetCursorPos()
         img = pyautogui.screenshot(region=Global.region)
-        img = cv2.circle(numpy.array(img), (mouse_pos.x,mouse_pos.y), 5, (255,0,0), -1)
+        img = cv2.circle(numpy.array(img), (mouse_x,mouse_y), 5, (255,0,0), -1)
         frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imwrite(filename, frame, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
 
@@ -67,17 +67,23 @@ class Gui:
                     threading.Thread(target=make_screenshots,args=('screenshot.jpg',Global.quality)).start()
 
                     while not keyboard.is_pressed('Esc'):
+                        st = time.time()
                         keyboard.play(Global.keyboard_events)
                         Global.keyboard_events.clear()
-                        #Global.mouse_events = []
                         for event in Global.mouse_events:
-                            if event['event_name'] == 'click':
-                                pyautogui.click(button=event['button'])
+                            if event['event_name'] == 'click' and event['button'] == 'left':
+                                win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,0,0)
+                                win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,0,0)
+                            if event['event_name'] == 'click' and event['button'] == 'right':
+                                win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN,0,0)
+                                win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP,0,0)
                             elif event['event_name'] == 'scroll':
-                                pyautogui.scroll(event['dy'] * 5)
+                                mouse_x, mouse_y = event['x'],event['y']
+                                win32api.mouse_event(win32con.MOUSEEVENTF_WHEEL, mouse_x, mouse_y, 5*event['dy'], 0)
                             elif event['event_name'] == 'move':
-                                pyautogui.moveTo(event['x'],event['y'])
+                                win32api.SetCursorPos((event['x'],event['y']))
                         Global.mouse_events.clear()
+                        print(1/(time.time() - st), 'FPS')
 
 
                 elif Global.role == 'control':
@@ -105,7 +111,7 @@ class Gui:
                             cv2.imshow('Window', frame)
                             if not cv2.waitKey(1):
                                 break
-                        print(1/(time.time() - st))
+                        print(1/(time.time() - st),'FPS')
 
                 self.__window.un_hide()
 
