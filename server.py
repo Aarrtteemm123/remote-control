@@ -1,7 +1,5 @@
-import json,pickle,threading
-
-import cv2
-from flask import Flask, request, make_response
+import json,threading
+from flask import Flask, request
 from keyboard import KeyboardEvent
 from global_values import Global
 
