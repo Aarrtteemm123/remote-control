@@ -33,6 +33,8 @@ class Gui:
                     size=(100,15), orientation='horizontal', font=('Helvetica', 12))],
             [sg.Slider(range=(1,screensize.height),tooltip='window record height', default_value=screensize.height, key='-HEIGHT-',
                        size=(100,15),pad=(10,5), orientation='horizontal', font=('Helvetica', 12))],
+            [sg.Slider(range=(1,100),tooltip='quality image', default_value=50, key='-QUALITY-',
+                       size=(100,15),pad=(10,5), orientation='horizontal', font=('Helvetica', 12))],
             [sg.Radio('I\'m share a screen (Server)', "RADIO1",enable_events=True,key='-SHARE-', default=True),
              sg.Radio('I\'m control a screen (Client)', "RADIO1",enable_events=True,key='-CONTROL-')],
             [sg.Text('IP:               ',key='local ip label'), sg.Input(default_text='192.168.0.106',key='ip')],
@@ -62,7 +64,7 @@ class Gui:
             elif event == '-START-':
                 self.__window.hide()
                 if Global.role == 'share':
-                    threading.Thread(target=make_screenshots,args=('screenshot.jpg',50)).start()
+                    threading.Thread(target=make_screenshots,args=('screenshot.jpg',Global.quality)).start()
 
                     while not keyboard.is_pressed('Esc'):
                         keyboard.play(Global.keyboard_events)
@@ -88,6 +90,7 @@ class Gui:
                     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
                     while cv2.getWindowProperty('Window', 1) > 0:
+                        st = time.time()
                         keyboard_events, mouse_events = Global.keyboard_events, Global.mouse_events
                         Global.keyboard_events.clear()
                         Global.mouse_events.clear()
@@ -102,6 +105,7 @@ class Gui:
                             cv2.imshow('Window', frame)
                             if not cv2.waitKey(1):
                                 break
+                        print(1/(time.time() - st))
 
                 self.__window.un_hide()
 
@@ -109,6 +113,7 @@ class Gui:
                 Global.ip = values['ip']
                 Global.port = int(values['port'])
                 Global.region = (values['-X-'],values['-Y-'],values['-WIDTH-'],values['-HEIGHT-'])
+                Global.quality = values['-QUALITY-']
                 try:
                     if Global.role == 'share':
                         run_server(Global.ip,Global.port)
