@@ -29,8 +29,8 @@ class Gui:
                        size=(100,15),pad=(10,5), orientation='horizontal', font=('Helvetica', 12))],
             [sg.Radio('I\'m share a screen (Server)', "RADIO1",enable_events=True,key='-SHARE-', default=True),
              sg.Radio('I\'m control a screen (Client)', "RADIO1",enable_events=True,key='-CONTROL-')],
-            [sg.Text('IP:               ',key='local ip label'), sg.Input(default_text='192.168.0.106',key='ip')],
-            [sg.Text('Port:             '), sg.Input(default_text='65432',key='port')],
+            [sg.Text('IP:               ',key='local ip label'), sg.Input(tooltip='For server - local ip, for client - global server ip',key='ip')],
+            [sg.Text('Port:             '), sg.Input(default_text='0',tooltip='Server port',key='port')],
             [sg.Button('Start', key='-START-', disabled=True, size=(100, 2))],
             [sg.Button('Apply', key='-APPLY-', size=(100, 2))],
             [sg.Button('Test connection',key='-TEST-CONNECT-',disabled=True, size=(100, 2))],
@@ -39,10 +39,9 @@ class Gui:
         self.__window = sg.Window('Computer remote control', self.__layout, size=(500, 600), icon='icon.ico')
 
     def start(self):
-        sg.theme()   # Add a touch of color
         while True:
             event, values = self.__window.read(timeout=10)
-            if event == sg.WIN_CLOSED or event == '-EXIT-': # if user closes window or clicks cancel
+            if event == sg.WIN_CLOSED or event == '-EXIT-':
                 if Global.is_server_running:
                     requests.get(f'http://{Global.ip}:{Global.port}/shutdown')
                 break
@@ -61,11 +60,18 @@ class Gui:
                     while not keyboard.is_pressed('Esc'):
                         keyboard.play(Global.keyboard_events)
                         Global.keyboard_events.clear()
+                        if Global.mouse_events:
+                            print(Global.mouse_events)
+                        Global.mouse_events = []
                         for event in Global.mouse_events:
-                            if event['event_name'] == 'click' and event['button'] == 'left':
-                                Mouse.left_click()
-                            if event['event_name'] == 'click' and event['button'] == 'right':
-                                Mouse.right_click()
+                            if event['event_name'] == 'click' and event['pressed'] == True and event['button'] == 'left':
+                                Mouse.press_left()
+                            elif event['event_name'] == 'click' and event['pressed'] == True and event['button'] == 'right':
+                                Mouse.press_right()
+                            elif event['event_name'] == 'click' and event['pressed'] == False and event['button'] == 'left':
+                                Mouse.release_left()
+                            elif event['event_name'] == 'click' and event['pressed'] == False and event['button'] == 'right':
+                                Mouse.release_right()
                             elif event['event_name'] == 'scroll':
                                 Mouse.scroll(10*event['dx'],10*event['dy'])
                             elif event['event_name'] == 'move':
@@ -83,10 +89,9 @@ class Gui:
                     ImageFile.LOAD_TRUNCATED_IMAGES = True
 
                     while cv2.getWindowProperty('Window', 1) > 0:
-                        start = time.time()
                         keyboard_events, mouse_events = Global.keyboard_events, Global.mouse_events
-                        Global.keyboard_events.clear()
-                        Global.mouse_events.clear()
+                        Global.keyboard_events = []
+                        Global.mouse_events = []
                         res = requests.get(f'http://{Global.ip}:{Global.port}/data',data={'mouse_events':json.dumps(mouse_events),'keyboard_events':json.dumps(keyboard_events)})
 
                         if res.content:
@@ -98,9 +103,6 @@ class Gui:
                             cv2.imshow('Window', frame)
                             if not cv2.waitKey(1):
                                 break
-                        finish = time.time() - start
-                        if finish != 0:
-                            print(1/finish,'FPS')
 
                 self.__window.un_hide()
 

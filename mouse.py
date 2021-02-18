@@ -15,6 +15,22 @@ class Mouse:
             win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP,0,0)
 
     @staticmethod
+    def press_right():
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN,0,0)
+
+    @staticmethod
+    def release_right():
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP,0,0)
+
+    @staticmethod
+    def press_left():
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN,0,0)
+
+    @staticmethod
+    def release_left():
+        win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP,0,0)
+
+    @staticmethod
     def scroll(dx, dy):
         win32api.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, dx, dy)
 
