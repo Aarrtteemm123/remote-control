@@ -60,9 +60,6 @@ class Gui:
                     while not keyboard.is_pressed('Esc'):
                         keyboard.play(Global.keyboard_events)
                         Global.keyboard_events.clear()
-                        if Global.mouse_events:
-                            print(Global.mouse_events)
-                        Global.mouse_events = []
                         for event in Global.mouse_events:
                             if event['event_name'] == 'click' and event['pressed'] == True and event['button'] == 'left':
                                 Mouse.press_left()
